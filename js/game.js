@@ -31,44 +31,75 @@ const gameboard = (() => {
         });
     });
 
+    const rows = () => {
+        return slots.map(row => row.map(cell => cell.getValue()));
+    };
+
+    const cols = () => {
+        return [0, 1, 2].map(col => {
+            return slots.map(row => row[col].getValue());
+        });
+    };
+
+    const diag = () => {
+        const topLeftToBottomRight = [0, 1, 2].map((col, index) => slots[col][index].getValue());
+        const topRightToBottomLeft = [0, 1, 2].map((col, index) => slots[col][2 - index].getValue());
+        return [topLeftToBottomRight, topRightToBottomLeft];
+    };
+
     const getBoard = () => {
         return slots.map(row => row.map(cell => cell.getValue()));
     };
 
     const printBoard = () => console.table(getBoard());
 
-    return { slots, getBoard, printBoard };
+    return { slots, rows, cols, diag, getBoard, printBoard };
 })();
 
-const controller = (player1, player2) => {
+const controller = () => {
 
-    let currentPlayer = player1;
-    
+    const gameState = {};
+
+    const registerPlayer = (name, marker) => {
+        if (!gameState.player1) {
+            gameState.player1 = player(name, marker);
+            gameState.currentPlayer = gameState.player1;
+        } else if (!gameState.player2) {
+            gameState.player2 = player(name, marker);
+        } else {
+            console.log('Cannot register more than 2 players');
+        }
+    };
+
     const switchPlayer = () => {
-        currentPlayer = (currentPlayer === player1) ? player2 : player1;
+        let { currentPlayer, player1, player2 } = gameState;
+        gameState.currentPlayer = currentPlayer === player1 ? player2 : player1; 
     }
 
-    const getMark = () => currentPlayer.getMark();
+    const checkForWin = () => {
+        let { currentPlayer } = gameState;
+        const check = (row) => row.every(cell => cell === currentPlayer.getMark());
+        return [gameboard.rows(), gameboard.cols(), gameboard.diag(), gameboard.diag()].some(check);
+    };
 
-    const getName = () => currentPlayer.getName();
-
-    const checkWin = () => {
-        const values = gameboard.getBoard();
-        const checkRow = (row) => row.every(cell => cell === currentPlayer.getMark());
-        const checkCol = (col) => values.map(row => row[col]).every(cell => cell === currentPlayer.getMark());
-        const checkDiag = () => {
-            const diag1 = [values[0][0], values[1][1], values[2][2]];
-            const diag2 = [values[0][2], values[1][1], values[2][0]];
-            return diag1.every(cell => cell === currentPlayer.getMark()) || diag2.every(cell => cell === currentPlayer.getMark());
+    const checkForTie = () => {
+        let { player1, player2 } = gameState;
+        const check = (board) => {
+            return board.every(row => row.every(cell => cell !== null)) || board.includes(player1.getMark()) && board.includes(player2.getMark());
         };
-        return values.some(checkRow) || values.some(checkCol) || checkDiag();
+        return [gameboard.rows(), gameboard.cols(), gameboard.diag(), gameboard.diag()].some(check);
     };
 
     const play = (row, col) => {
+        let { currentPlayer } = gameState;
+
         if (gameboard.slots[row][col].setValue(currentPlayer.getMark())) {
             
-            if (checkWin()) {
+            if (checkForWin()) {
                 console.log(`${currentPlayer.getName()} wins!`);
+                return gameboard.printBoard();
+            } else if (checkForTie()) {
+                console.log('Tie game!');
                 return gameboard.printBoard();
             } else {
                 switchPlayer();
@@ -81,6 +112,6 @@ const controller = (player1, player2) => {
         }
     };
 
-    return { play };
+    return { registerPlayer, play, gameState };
     
 };
