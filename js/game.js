@@ -10,7 +10,8 @@ const player = (name, marker) => {
 const gameboard = (() => {
 
     const cell = () => {
-        let value = null;
+        let value = null
+            element = null;
     
         const getValue = () => value;
         const setValue = (newValue) => {
@@ -21,18 +22,20 @@ const gameboard = (() => {
                 return false;
             }
         };
-    
+
         return { getValue, setValue };
     };
 
-    let slots = ['row1', 'row2', 'row3'].map(col => {
-        return ['col1', 'col2', 'col3'].map(row => {
-            return cell();
-        });
-    });
+    let slots = [];
 
-    const rows = () => {
-        return slots.map(row => row.map(cell => cell.getValue()));
+    const init = () => {
+        slots = ['row1', 'row2', 'row3'].map(col => {
+            return ['col1', 'col2', 'col3'].map(row => {
+                return cell();
+            });
+        });
+
+        return slots;
     };
 
     const cols = () => {
@@ -43,7 +46,7 @@ const gameboard = (() => {
 
     const diag = () => {
         const topLeftToBottomRight = [0, 1, 2].map((col, index) => slots[col][index].getValue());
-        const topRightToBottomLeft = [0, 1, 2].map((col, index) => slots[col][2 - index].getValue());
+        const topRightToBottomLeft = [2, 1, 0].map((col, index) => slots[index][col].getValue());
         return [topLeftToBottomRight, topRightToBottomLeft];
     };
 
@@ -53,12 +56,32 @@ const gameboard = (() => {
 
     const printBoard = () => console.table(getBoard());
 
-    return { slots, rows, cols, diag, getBoard, printBoard };
+    return { init, cols, diag, getBoard, printBoard };
 })();
 
 const controller = () => {
 
     const gameState = {};
+
+    const _initGameboard = (container) => {
+        gameboard.init().
+            forEach((row, rowIndex) => {
+                row.forEach((cell, cellIndex) => {
+                    const div = document.createElement('div');
+                        div.classList.add('cell');
+                        div.setAttribute('data-row', rowIndex);
+                        div.setAttribute('data-col', cellIndex);
+                    
+                    if (cell.getValue() !== null) div.textContent = cell.getValue();
+    
+                    /* div.addEventListener('click', (e) => {
+                        game.play(rowIndex, cellIndex);
+                    }); */
+
+                    container.appendChild(div);
+                });
+            });
+    };
 
     const registerPlayer = (name, marker) => {
         if (!gameState.player1) {
@@ -74,12 +97,13 @@ const controller = () => {
     const switchPlayer = () => {
         let { currentPlayer, player1, player2 } = gameState;
         gameState.currentPlayer = currentPlayer === player1 ? player2 : player1; 
+        return currentPlayer;
     }
 
     const checkForWin = () => {
         let { currentPlayer } = gameState;
         const check = (row) => row.every(cell => cell === currentPlayer.getMark());
-        return [gameboard.rows(), gameboard.cols(), gameboard.diag(), gameboard.diag()].some(check);
+        return [gameboard.getBoard(), gameboard.cols(), gameboard.diag(), gameboard.diag()].some(check);
     };
 
     const checkForTie = () => {
@@ -87,7 +111,7 @@ const controller = () => {
         const check = (board) => {
             return board.every(row => row.every(cell => cell !== null)) || board.includes(player1.getMark()) && board.includes(player2.getMark());
         };
-        return [gameboard.rows(), gameboard.cols(), gameboard.diag(), gameboard.diag()].some(check);
+        return [gameboard.getBoard(), gameboard.cols(), gameboard.diag(), gameboard.diag()].some(check);
     };
 
     const play = (row, col) => {
@@ -102,8 +126,7 @@ const controller = () => {
                 console.log('Tie game!');
                 return gameboard.printBoard();
             } else {
-                switchPlayer();
-                console.log(`${currentPlayer.getName()}'s turn`);
+                console.log(`${switchPlayer().getName()}'s turn`);
                 return gameboard.printBoard();
             }
             
@@ -112,6 +135,6 @@ const controller = () => {
         }
     };
 
-    return { registerPlayer, play, gameState };
+    return { _initGameboard, registerPlayer, play, gameState };
     
 };
