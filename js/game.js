@@ -26,17 +26,11 @@ const gameboard = (() => {
         return { getValue, setValue };
     };
 
-    let slots = [];
-
-    const init = () => {
-        slots = ['row1', 'row2', 'row3'].map(col => {
-            return ['col1', 'col2', 'col3'].map(row => {
-                return cell();
-            });
+    let slots = ['row1', 'row2', 'row3'].map(col => {
+        return ['col1', 'col2', 'col3'].map(row => {
+            return cell();
         });
-
-        return slots;
-    };
+    });
 
     const cols = () => {
         return [0, 1, 2].map(col => {
@@ -56,15 +50,18 @@ const gameboard = (() => {
 
     const printBoard = () => console.table(getBoard());
 
-    return { init, cols, diag, getBoard, printBoard };
+    return { slots, cols, diag, getBoard, printBoard };
 })();
 
 const controller = () => {
 
     const gameState = {};
 
+    const getGameStateMessage = () => gameState.message;
+    const setGameStateMessage = (message) => gameState.message = message;
+
     const _initGameboard = (container) => {
-        gameboard.init().
+        gameboard.slots.
             forEach((row, rowIndex) => {
                 row.forEach((cell, cellIndex) => {
                     const div = document.createElement('div');
@@ -73,24 +70,33 @@ const controller = () => {
                         div.setAttribute('data-col', cellIndex);
                     
                     if (cell.getValue() !== null) div.textContent = cell.getValue();
-    
-                    /* div.addEventListener('click', (e) => {
-                        game.play(rowIndex, cellIndex);
-                    }); */
 
                     container.appendChild(div);
                 });
             });
+
+            setGameStateMessage('Waiting for players to join...');
     };
 
     const registerPlayer = (name, marker) => {
-        if (!gameState.player1) {
+        if (!gameState.player1 && marker === 'x') {
             gameState.player1 = player(name, marker);
-            gameState.currentPlayer = gameState.player1;
-        } else if (!gameState.player2) {
+            if (gameState.player2) {
+                setGameStateMessage('Players ready! Starting game...');
+                gameState.currentPlayer = gameState.player1;
+            } else {
+                setGameStateMessage(`${gameState.player1.getName()}'s ready! Waiting for player 2...`);
+            }
+        } else if (!gameState.player2 && marker === 'o') {
             gameState.player2 = player(name, marker);
+            if (gameState.player1) {
+                setGameStateMessage('Players ready! Starting game...');
+                gameState.currentPlayer = gameState.player1;
+            } else {
+                setGameStateMessage(`${gameState.player2.getName()}'s ready! Waiting for player 1...`);
+            }
         } else {
-            console.log('Cannot register more than 2 players');
+            console.log('Invalid player registration');
         }
     };
 
@@ -102,16 +108,18 @@ const controller = () => {
 
     const checkForWin = () => {
         let { currentPlayer } = gameState;
-        const check = (row) => row.every(cell => cell === currentPlayer.getMark());
-        return [gameboard.getBoard(), gameboard.cols(), gameboard.diag(), gameboard.diag()].some(check);
+        const check = (board) => board.some(row => row.every(cell => cell === currentPlayer.getMark()));
+        return [gameboard.getBoard(), gameboard.cols(), gameboard.diag()].some(check);
     };
 
     const checkForTie = () => {
         let { player1, player2 } = gameState;
         const check = (board) => {
-            return board.every(row => row.every(cell => cell !== null)) || board.includes(player1.getMark()) && board.includes(player2.getMark());
+             return board.every(row => row.every(cell => cell !== null)) || 
+                    board.every(row => row.includes(player1.getMark())) && 
+                    board.every(row => row.includes(player2.getMark()));
         };
-        return [gameboard.getBoard(), gameboard.cols(), gameboard.diag(), gameboard.diag()].some(check);
+        return [gameboard.getBoard(), gameboard.cols(), gameboard.diag()].some(check);
     };
 
     const play = (row, col) => {
@@ -120,8 +128,8 @@ const controller = () => {
         if (gameboard.slots[row][col].setValue(currentPlayer.getMark())) {
             
             if (checkForWin()) {
-                console.log(`${currentPlayer.getName()} wins!`);
-                return gameboard.printBoard();
+                gameboard.printBoard();
+                return console.log(`${currentPlayer.getName()} wins!`);
             } else if (checkForTie()) {
                 console.log('Tie game!');
                 return gameboard.printBoard();
@@ -135,6 +143,6 @@ const controller = () => {
         }
     };
 
-    return { _initGameboard, registerPlayer, play, gameState };
+    return { _initGameboard, registerPlayer, play, gameState, getGameStateMessage };
     
 };
