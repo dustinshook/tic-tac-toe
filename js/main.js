@@ -77,8 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cells.forEach(cell => {
         cell.addEventListener('click', (e) => {
-            const { row, col } = e.target.dataset;
-            game.play(row, col);
+            displayMessage(game.play(e));
         });
     });
 

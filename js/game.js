@@ -10,8 +10,7 @@ const player = (name, marker) => {
 const gameboard = (() => {
 
     const cell = () => {
-        let value = null
-            element = null;
+        let value = null;
     
         const getValue = () => value;
         const setValue = (newValue) => {
@@ -74,8 +73,6 @@ const controller = () => {
                     container.appendChild(div);
                 });
             });
-
-            setGameStateMessage('Waiting for players to join...');
     };
 
     const registerPlayer = (name, marker) => {
@@ -85,7 +82,7 @@ const controller = () => {
                 setGameStateMessage('Players ready! Starting game...');
                 gameState.currentPlayer = gameState.player1;
             } else {
-                setGameStateMessage(`${gameState.player1.getName()}'s ready! Waiting for player 2...`);
+                setGameStateMessage(`${gameState.player1.getName()}'s ready!`);
             }
         } else if (!gameState.player2 && marker === 'o') {
             gameState.player2 = player(name, marker);
@@ -93,7 +90,7 @@ const controller = () => {
                 setGameStateMessage('Players ready! Starting game...');
                 gameState.currentPlayer = gameState.player1;
             } else {
-                setGameStateMessage(`${gameState.player2.getName()}'s ready! Waiting for player 1...`);
+                setGameStateMessage(`${gameState.player2.getName()}'s ready!`);
             }
         } else {
             console.log('Invalid player registration');
@@ -103,6 +100,7 @@ const controller = () => {
     const switchPlayer = () => {
         let { currentPlayer, player1, player2 } = gameState;
         gameState.currentPlayer = currentPlayer === player1 ? player2 : player1; 
+        setGameStateMessage(`${gameState.currentPlayer.getName()}'s turn`);
         return currentPlayer;
     }
 
@@ -122,25 +120,31 @@ const controller = () => {
         return [gameboard.getBoard(), gameboard.cols(), gameboard.diag()].some(check);
     };
 
-    const play = (row, col) => {
+    const play = ({ target }) => {
         let { currentPlayer } = gameState;
+        let { row, col } = target.dataset;
+
+        if (gameState.gameOver) return getGameStateMessage();
 
         if (gameboard.slots[row][col].setValue(currentPlayer.getMark())) {
-            
+            target.textContent = currentPlayer.getMark();
             if (checkForWin()) {
-                gameboard.printBoard();
-                return console.log(`${currentPlayer.getName()} wins!`);
+                setGameStateMessage(`${currentPlayer.getName()} wins!`);
+                gameState.winner = currentPlayer;
+                gameState.gameOver = true;
             } else if (checkForTie()) {
-                console.log('Tie game!');
-                return gameboard.printBoard();
+                setGameStateMessage('Tie game!');
+                gameState.gameOver = true;
             } else {
-                console.log(`${switchPlayer().getName()}'s turn`);
-                return gameboard.printBoard();
+                setGameStateMessage(`${switchPlayer().getName()}'s turn`);
+                gameState.gameOver = false;
             }
             
         } else {
-            console.log('Invalid move');
+            setGameStateMessage('Invalid move!');
         }
+
+        return getGameStateMessage();
     };
 
     return { _initGameboard, registerPlayer, play, gameState, getGameStateMessage };
