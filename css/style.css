@@ -116,7 +116,7 @@ main {
     color: var(--primary-white);
     transition: background-color 0.2s ease-in-out;
     font-family: 'Rubik Wet Paint', cursive;
-    font-size: calc(30px + 1.5vw);
+    font-size: calc(1rem + 3vw);
     display: flex;
     justify-content: center;
     align-items: center;

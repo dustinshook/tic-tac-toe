@@ -113,11 +113,9 @@ const controller = () => {
     const checkForTie = () => {
         let { player1, player2 } = gameState;
         const check = (board) => {
-             return board.every(row => row.every(cell => cell !== null)) || 
-                    board.every(row => row.includes(player1.getMark())) && 
-                    board.every(row => row.includes(player2.getMark()));
+             return board.every(row => row.every(cell => cell !== null)); 
         };
-        return [gameboard.getBoard(), gameboard.cols(), gameboard.diag()].some(check);
+        return [gameboard.getBoard(), gameboard.cols()].some(check);
     };
 
     const play = ({ target }) => {
@@ -147,6 +145,6 @@ const controller = () => {
         return getGameStateMessage();
     };
 
-    return { _initGameboard, registerPlayer, play, gameState, getGameStateMessage };
+    return { _initGameboard, registerPlayer, play, gameState, getGameStateMessage, checkForTie };
     
 };
