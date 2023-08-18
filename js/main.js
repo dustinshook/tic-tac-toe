@@ -8,11 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayMessage = (text) => {
         const messageReset = () => {
             message.textContent = '';
-            message.classList.add('hidden');
+            message.style.opacity = 0;
         };
 
         message.textContent = text;
-        message.classList.remove('hidden');
+        message.style.opacity = 1;
 
         setTimeout(messageReset, 3000);
     };

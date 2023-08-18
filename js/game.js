@@ -111,7 +111,6 @@ const controller = () => {
     };
 
     const checkForTie = () => {
-        let { player1, player2 } = gameState;
         const check = (board) => {
              return board.every(row => row.every(cell => cell !== null)); 
         };
@@ -134,7 +133,7 @@ const controller = () => {
                 setGameStateMessage('Tie game!');
                 gameState.gameOver = true;
             } else {
-                setGameStateMessage(`${switchPlayer().getName()}'s turn`);
+                switchPlayer();
                 gameState.gameOver = false;
             }
             
