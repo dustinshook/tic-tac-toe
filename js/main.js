@@ -1,24 +1,40 @@
 /* main js */
-/* DOM loaded */
+const messageHandler = ({ getGameStateMessage }) => {
+    const elm = document.getElementById('message');
 
+    return () => {
+        const messageReset = () => {
+            elm.textContent = '';
+            elm.style.opacity = 0;
+        };
+
+        elm.textContent = getGameStateMessage();
+        elm.style.opacity = 1;
+
+        setTimeout(messageReset, 2000);
+    };
+};
+/* DOM loaded */
 document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('grid-container');
     const controls = document.querySelectorAll('.controls');
-
-    const displayMessage = (text) => {
-        const messageReset = () => {
-            message.textContent = '';
-            message.style.opacity = 0;
-        };
-
-        message.textContent = text;
-        message.style.opacity = 1;
-
-        setTimeout(messageReset, 3000);
-    };
-
+    const startButton = document.getElementById('start');
+    const resetButton = document.getElementById('reset');
     const game = controller();
+    const displayMessage  = messageHandler(game);
     game._initGameboard(container);
+
+    startButton.addEventListener('click', () => {
+        game.startGame();
+        displayMessage();
+    });
+
+    resetButton.addEventListener('click', () => {
+        /* game.resetGame();
+        displayMessage(); */
+
+        console.log(game.minimax(gameboard.slots, 0, true));
+    });
 
     const renderControls = (id) => {
         return `
@@ -53,7 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const playerName = document.getElementById(`name_${id}`);
         const playerSelect = document.getElementById(`player-type_${id}`);
         const diffSelect = document.getElementById(`difficulty_${id}`);
-        const message = document.getElementById('message');
 
         playerSelect.addEventListener('change', (e) => {
             if (e.target.value === 'cpu') {
@@ -67,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.id === `add-player_${id}` && !e.target.classList.contains('ready')) {
                 e.target.classList.add('ready');
                 game.registerPlayer(playerName.value, marker);
-                displayMessage(game.getGameStateMessage());
+                displayMessage();
             }
         });
 
@@ -77,7 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cells.forEach(cell => {
         cell.addEventListener('click', (e) => {
-            displayMessage(game.play(e));
+            game.play(e);
+            displayMessage();
         });
     });
 

@@ -22,7 +22,9 @@ const gameboard = (() => {
             }
         };
 
-        return { getValue, setValue };
+        const reset = () => value = null;
+
+        return { getValue, setValue, reset };
     };
 
     let slots = ['row1', 'row2', 'row3'].map(col => {
@@ -78,22 +80,21 @@ const controller = () => {
     const registerPlayer = (name, marker) => {
         if (!gameState.player1 && marker === 'x') {
             gameState.player1 = player(name, marker);
-            if (gameState.player2) {
-                setGameStateMessage('Players ready! Starting game...');
-                gameState.currentPlayer = gameState.player1;
-            } else {
-                setGameStateMessage(`${gameState.player1.getName()}'s ready!`);
-            }
+            setGameStateMessage(`${gameState.player1.getName()}'s ready!`);
         } else if (!gameState.player2 && marker === 'o') {
             gameState.player2 = player(name, marker);
-            if (gameState.player1) {
-                setGameStateMessage('Players ready! Starting game...');
-                gameState.currentPlayer = gameState.player1;
-            } else {
-                setGameStateMessage(`${gameState.player2.getName()}'s ready!`);
-            }
+            setGameStateMessage(`${gameState.player2.getName()}'s ready!`);
         } else {
-            console.log('Invalid player registration');
+            setGameStateMessage('Already registered!');
+        }
+    };
+
+    const startGame = () => {
+        if (gameState.player1 && gameState.player2) {
+            gameState.currentPlayer = gameState.player1;
+            setGameStateMessage(`${gameState.currentPlayer.getName()}'s turn`);
+        } else {
+            setGameStateMessage('Register players first!');
         }
     };
 
@@ -144,6 +145,6 @@ const controller = () => {
         return getGameStateMessage();
     };
 
-    return { _initGameboard, registerPlayer, play, gameState, getGameStateMessage, checkForTie };
+    return { _initGameboard, registerPlayer, play, gameState, getGameStateMessage, startGame };
     
 };
