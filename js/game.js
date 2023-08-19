@@ -1,10 +1,85 @@
 /* game.js */
-const player = (name, marker) => {
-
+const player = (name, marker, type) => {
     const getName = () => name;
     const getMark = () => marker;
-    
-    return { getName, getMark };
+    const isHuman = () => type === 'human';
+
+    const opponent = getMark() === 'x' ? 'o' : 'x';
+
+    const move = () => {
+        const board = gameboard.getBoard();
+        const cols = [0, 1, 2].map(col => {
+            return board.map(row => row[col]);
+        });
+
+        const diag = () => {
+            const topLeftToBottomRight = [0, 1, 2].map((col, index) => board[col][index]);
+            const topRightToBottomLeft = [2, 1, 0].map((col, index) => board[index][col]);
+            return [topLeftToBottomRight, topRightToBottomLeft];
+        };
+
+        const evaluate = () => {
+            if (board.some(row => row.every(cell => cell === getMark()))) return 10;
+            if (board.some(row => row.every(cell => cell === opponent))) return -10;
+            if (cols.some(col => col.every(cell => cell === getMark()))) return 10;
+            if (cols.some(col => col.every(cell => cell === opponent))) return -10;
+            if (diag().some(diag => diag.every(cell => cell === getMark()))) return 10;
+            if (diag().some(diag => diag.every(cell => cell === opponent))) return -10;
+            return 0;
+        };
+
+        const hasEmptySpaces = () => {
+            return board.some(row => row.includes(null));
+        };
+
+        const minimax = (depth, isMax) => {
+            let score = evaluate();
+
+            if (score === 10) return score - depth;
+            if (score === -10) return score + depth;
+            if (!hasEmptySpaces()) return 0;
+
+            const scores = [];
+
+            board.forEach((row, rowIndex) => {
+                row.forEach((cell, colIndex) => {
+                    if (cell === null) {
+                        board[rowIndex][colIndex] = isMax ? getMark() : opponent;
+                        scores.push(minimax(depth + 1, !isMax));
+                        board[rowIndex][colIndex] = null;
+                    }
+                });
+            });
+
+            return isMax ? Math.max(...scores) : Math.min(...scores);
+        };
+
+        const findBestMove = () => {
+            let bestScore = -Infinity;
+            let bestMove = { row: null, col: null };
+
+            board.forEach((row, rowIndex) => {
+                row.forEach((cell, colIndex) => {
+                    if (cell === null) {
+                        board[rowIndex][colIndex] = getMark();
+                        let score = minimax(0, false);
+                        board[rowIndex][colIndex] = null;
+
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMove = { row: rowIndex, col: colIndex };
+                        }
+                    }
+                });
+            });
+
+            return bestMove;
+        };
+
+        return findBestMove();
+    };
+
+    return { getName, getMark, isHuman, move };
 };
 
 const gameboard = (() => {
@@ -77,12 +152,12 @@ const controller = () => {
             });
     };
 
-    const registerPlayer = (name, marker) => {
+    const registerPlayer = (name, marker, type) => {
         if (!gameState.player1 && marker === 'x') {
-            gameState.player1 = player(name, marker);
+            gameState.player1 = player(name, marker, type);
             setGameStateMessage(`${gameState.player1.getName()}'s ready!`);
         } else if (!gameState.player2 && marker === 'o') {
-            gameState.player2 = player(name, marker);
+            gameState.player2 = player(name, marker, type);
             setGameStateMessage(`${gameState.player2.getName()}'s ready!`);
         } else {
             setGameStateMessage('Already registered!');
@@ -93,6 +168,9 @@ const controller = () => {
         if (gameState.player1 && gameState.player2) {
             gameState.currentPlayer = gameState.player1;
             setGameStateMessage(`${gameState.currentPlayer.getName()}'s turn`);
+            if (!gameState.currentPlayer.isHuman()) {
+                console.log(gameState.currentPlayer.move());
+            }
         } else {
             setGameStateMessage('Register players first!');
         }

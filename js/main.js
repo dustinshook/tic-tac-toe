@@ -32,8 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     resetButton.addEventListener('click', () => {
         /* game.resetGame();
         displayMessage(); */
-
-        console.log(game.minimax(gameboard.slots, 0, true));
     });
 
     const renderControls = (id) => {
@@ -81,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         control.addEventListener('click', (e) => {
             if (e.target.id === `add-player_${id}` && !e.target.classList.contains('ready')) {
                 e.target.classList.add('ready');
-                game.registerPlayer(playerName.value, marker);
+                game.registerPlayer(playerName.value, marker, playerSelect.value);
                 displayMessage();
             }
         });
@@ -94,6 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
         cell.addEventListener('click', (e) => {
             game.play(e);
             displayMessage();
+
+            console.log(game.gameState)
         });
     });
 
