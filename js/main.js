@@ -14,6 +14,8 @@ const messageHandler = ({ getGameStateMessage }) => {
         setTimeout(messageReset, 2000);
     };
 };
+
+/* const updateCellsEvent = new CustomEvent('updateCells'); */
 /* DOM loaded */
 document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('grid-container');
@@ -22,7 +24,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetButton = document.getElementById('reset');
     const game = controller();
     const displayMessage  = messageHandler(game);
-    game._initGameboard(container);
+
+    const _initGameboard = (container) => {
+        gameboard.slots.
+            forEach((row, rowIndex) => {
+                row.forEach((cell, cellIndex) => {
+                    const div = document.createElement('div');
+                        div.classList.add('cell');
+                        div.setAttribute('data-row', rowIndex);
+                        div.setAttribute('data-col', cellIndex);
+                    
+                    if (cell.getValue() !== null) div.textContent = cell.getValue();
+                    cell.el = div;
+
+                    container.appendChild(div);
+                });
+            });
+    };
+
+    _initGameboard(container);
 
     startButton.addEventListener('click', () => {
         game.startGame();
@@ -76,25 +96,41 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        control.addEventListener('click', (e) => {
+        const ready_handleClick = (e) => {
             if (e.target.id === `add-player_${id}` && !e.target.classList.contains('ready')) {
                 e.target.classList.add('ready');
                 game.registerPlayer(playerName.value, marker, playerSelect.value);
                 displayMessage();
+
+                e.target.removeEventListener('click', ready_handleClick);
             }
-        });
+        };
+
+        control.addEventListener('click', ready_handleClick);
 
     }); 
 
     const cells = document.querySelectorAll('.cell');
 
-    cells.forEach(cell => {
-        cell.addEventListener('click', (e) => {
-            game.play(e);
-            displayMessage();
+    const updateCell = ({ target }) => {
+        const { row, col } = target.dataset;
+        
+        if (gameboard.slots[row][col].getValue() !== null) {
+            target.textContent = gameboard.slots[row][col].getValue();
+        }
+    }
 
-            console.log(game.gameState)
-        });
-    });
+    const cell_handleClick = (e) => {
+        game.play(e.target.dataset);
+        updateCell(e);
+        displayMessage();
+
+        e.target.removeEventListener('click', cell_handleClick);
+    };
+
+    const cell_enableClick = () => cells.forEach(cell => cell.addEventListener('click', cell_handleClick));
+    const cell_disableClick = () => cells.forEach(cell => cell.removeEventListener('click', cell_handleClick));
+
+    cell_enableClick();
 
 });

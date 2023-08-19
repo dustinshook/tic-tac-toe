@@ -136,22 +136,6 @@ const controller = () => {
     const getGameStateMessage = () => gameState.message;
     const setGameStateMessage = (message) => gameState.message = message;
 
-    const _initGameboard = (container) => {
-        gameboard.slots.
-            forEach((row, rowIndex) => {
-                row.forEach((cell, cellIndex) => {
-                    const div = document.createElement('div');
-                        div.classList.add('cell');
-                        div.setAttribute('data-row', rowIndex);
-                        div.setAttribute('data-col', cellIndex);
-                    
-                    if (cell.getValue() !== null) div.textContent = cell.getValue();
-
-                    container.appendChild(div);
-                });
-            });
-    };
-
     const registerPlayer = (name, marker, type) => {
         if (!gameState.player1 && marker === 'x') {
             gameState.player1 = player(name, marker, type);
@@ -164,12 +148,18 @@ const controller = () => {
         }
     };
 
+    const emulateClickForCpuPlayer = ({ row, col }) => {
+        let cell = gameboard.slots[row][col];
+        setTimeout(() => cell.el.click(), 500);
+    };
+
     const startGame = () => {
         if (gameState.player1 && gameState.player2) {
             gameState.currentPlayer = gameState.player1;
             setGameStateMessage(`${gameState.currentPlayer.getName()}'s turn`);
             if (!gameState.currentPlayer.isHuman()) {
-                console.log(gameState.currentPlayer.move());
+                let move = gameState.currentPlayer.move();
+                emulateClickForCpuPlayer(move);
             }
         } else {
             setGameStateMessage('Register players first!');
@@ -180,7 +170,11 @@ const controller = () => {
         let { currentPlayer, player1, player2 } = gameState;
         gameState.currentPlayer = currentPlayer === player1 ? player2 : player1; 
         setGameStateMessage(`${gameState.currentPlayer.getName()}'s turn`);
-        return currentPlayer;
+
+        if (!gameState.currentPlayer.isHuman()) {
+            let move = gameState.currentPlayer.move();
+            emulateClickForCpuPlayer(move);
+        }
     }
 
     const checkForWin = () => {
@@ -196,14 +190,13 @@ const controller = () => {
         return [gameboard.getBoard(), gameboard.cols()].some(check);
     };
 
-    const play = ({ target }) => {
-        let { currentPlayer } = gameState;
-        let { row, col } = target.dataset;
-
-        if (gameState.gameOver) return getGameStateMessage();
+    const play = ({ row, col }) => {
+        let { currentPlayer, gameOver } = gameState;
+    
+        if (gameOver) return false;
 
         if (gameboard.slots[row][col].setValue(currentPlayer.getMark())) {
-            target.textContent = currentPlayer.getMark();
+            
             if (checkForWin()) {
                 setGameStateMessage(`${currentPlayer.getName()} wins!`);
                 gameState.winner = currentPlayer;
@@ -223,6 +216,6 @@ const controller = () => {
         return getGameStateMessage();
     };
 
-    return { _initGameboard, registerPlayer, play, gameState, getGameStateMessage, startGame };
+    return { registerPlayer, play, gameState, getGameStateMessage, startGame };
     
 };
