@@ -123,7 +123,7 @@ main {
 }
 
 #grid-container .cell:hover {
-    background-color: var(--color-secondary);
+    background-color: var(--color-gradient-2);
     cursor: pointer;
 }
 
