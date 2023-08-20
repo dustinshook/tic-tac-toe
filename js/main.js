@@ -1,5 +1,5 @@
 /* main js */
-const messageHandler = ({ getGameStateMessage }) => {
+const messageHandler = ({ getGameStateMessage, gameState }) => {
     const elm = document.getElementById('message');
 
     return () => {
@@ -8,8 +8,10 @@ const messageHandler = ({ getGameStateMessage }) => {
             elm.style.opacity = 0;
         };
 
-        elm.textContent = getGameStateMessage();
+        elm.textContent = getGameStateMessage();;
         elm.style.opacity = 0.8;
+
+        if (gameState.gameOver) return;
 
         setTimeout(messageReset, 2000);
     };
