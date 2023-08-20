@@ -49,28 +49,29 @@ document.addEventListener('DOMContentLoaded', () => {
         displayMessage();
     });
 
-    resetButton.addEventListener('click', () => {
-        /* game.resetGame();
-        displayMessage(); */
-    });
-
     const renderControls = (id) => {
+        const cache = JSON.parse(localStorage.getItem(`add-player_${id}`));
+        
+        let name = cache?.name || `Player ${id}`;
+        let type = cache?.type || 'human';
+        let difficulty = cache?.difficulty || 'easy';
+
         return `
             <div class="input-group">
                 <label for="name_${id}" class="name">Name:
-                    <input type="text" name="name_${id}" id="name_${id}" class="editable" value="Player ${id}"></input>
+                    <input type="text" name="name_${id}" id="name_${id}" class="editable" value="${name}"></input>
                 </label>
                 <label for="player-type_${id}" class="player-select">Type:
                     <select name="player-type_${id}" id="player-type_${id}">
                         <option value="human">Human</option>
-                        <option value="cpu">CPU</option>
+                        <option value="cpu" ${type === "cpu" ? "selected" : ""}>CPU</option>
                     </select>
                 </label>
                 <label for="difficulty_${id}" class="diff-select">Difficulty:
-                    <select name="difficulty_${id}" id="difficulty_${id}" disabled>
+                    <select name="difficulty_${id}" id="difficulty_${id}" ${type === "human" ? "disabled" : ""}>
                         <option value="easy">Easy</option>
-                        <option value="medium">Medium</option>
-                        <option value="hard">Hard</option>
+                        <option value="medium" ${difficulty === "medium" ? "selected" : ""}>Medium</option>
+                        <option value="hard" ${difficulty === "hard" ? "selected" : ""}>Hard</option>
                     </select>
                 </label>
                 <div class="button" id="add-player_${id}">Ready</div>
@@ -102,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 game.registerPlayer(playerName.value, marker, playerSelect.value, diffSelect.value);
                 displayMessage();
 
-                e.target.removeEventListener('click', ready_handleClick);
+                localStorage.setItem(e.target.id, JSON.stringify({ name: playerName.value, type: playerSelect.value, difficulty: diffSelect.value }));
             }
         };
 
@@ -128,9 +129,12 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.removeEventListener('click', cell_handleClick);
     };
 
-    const cell_enableClick = () => cells.forEach(cell => cell.addEventListener('click', cell_handleClick));
-    const cell_disableClick = () => cells.forEach(cell => cell.removeEventListener('click', cell_handleClick));
+    (() => cells.forEach(cell => cell.addEventListener('click', cell_handleClick)))();
 
-    cell_enableClick();
+    const _resetGameboard = () => {
+        window.location.reload();
+    };
+
+    resetButton.addEventListener('click', _resetGameboard);
 
 });
