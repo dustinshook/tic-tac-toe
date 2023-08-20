@@ -249,3 +249,10 @@ main {
     pointer-events: none;
     transition: opacity 0.2s ease-in-out;
 }
+
+@media screen and (max-width: 730px) {
+    /* mobile */
+    #page {
+        padding: 0em 1em 2em 1em;
+    }
+}
