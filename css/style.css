@@ -36,10 +36,9 @@ input:-webkit-autofill:active {
 #page {
     display: grid;
     grid-template-rows: auto 1fr;
-    height: 100vh;
-    width: 100%;
-    overflow: hidden;
     padding: 0 2em;
+    height: 100vh;
+    height: 100svh;
 }
 
 .hidden {
@@ -248,11 +247,4 @@ main {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease-in-out;
-}
-
-@media screen and (max-width: 730px) {
-    /* mobile */
-    #page {
-        padding: 0em 1em 2em 1em;
-    }
 }
