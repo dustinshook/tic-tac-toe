@@ -1,5 +1,5 @@
 /* game.js */
-const player = (name, marker, type) => {
+const player = (name, marker, type, difficulty) => {
     const getName = () => name;
     const getMark = () => marker;
     const isHuman = () => type === 'human';
@@ -22,12 +22,8 @@ const player = (name, marker, type) => {
         };
 
         const evaluate = () => {
-            if (board.some(row => row.every(cell => cell === getMark()))) return 10;
-            if (board.some(row => row.every(cell => cell === opponent))) return -10;
-            if (cols().some(col => col.every(cell => cell === getMark()))) return 10;
-            if (cols().some(col => col.every(cell => cell === opponent))) return -10;
-            if (diag().some(diag => diag.every(cell => cell === getMark()))) return 10;
-            if (diag().some(diag => diag.every(cell => cell === opponent))) return -10;
+            if ([board, cols(), diag()].some(layout => layout.some(row => row.every(cell => cell === getMark())))) return 10;
+            if ([board, cols(), diag()].some(layout => layout.some(row => row.every(cell => cell === opponent)))) return -10;
             return 0;
         };
 
@@ -79,7 +75,59 @@ const player = (name, marker, type) => {
             return bestMove;
         };
 
-        return findBestMove();
+        const findRandomMove = () => {
+            const cells = [];
+            board.forEach((row, rowIndex) => {
+                row.forEach((cell, colIndex) => {
+                    if (cell === null) {
+                        cells.push({ row: rowIndex, col: colIndex });
+                    }
+                });
+            });
+
+            let idx = Math.floor(Math.random() * cells.length);
+            return cells[idx];
+        };
+
+        const findBetterThanRandomMove = () => {
+            /* medium difficulty */
+            const cells = [];
+            board.forEach((row, rowIndex) => {
+                row.forEach((cell, colIndex) => {
+                    /* cell is empty */
+                    if (cell === null) {
+                        /* check for available winning move */
+                        board[rowIndex][colIndex] = getMark();
+                        let score = evaluate();
+                        board[rowIndex][colIndex] = null;
+                        /* winning move available */
+                        if (score === 10) {
+                            /* take winning move */
+                            cells.push({ row: rowIndex, col: colIndex });
+                        }
+                        /* check for available blocking move */
+                        board[rowIndex][colIndex] = opponent;
+                        score = evaluate();
+                        board[rowIndex][colIndex] = null;
+                        /* blocking move available */
+                        if (score === -10) {
+                            /* take blocking move */
+                            cells.push({ row: rowIndex, col: colIndex });
+                        }
+                    }
+                });
+            });
+
+            /* winning or blocking move available */
+            if (cells.length > 0) return cells[0];
+
+            /* no winning or blocking moves available */
+            return findRandomMove();
+        };
+
+        return difficulty === 'easy' ? findRandomMove() 
+            : difficulty === 'medium' ? findBetterThanRandomMove() 
+            : findBestMove();
     };
 
     return { getName, getMark, isHuman, move };
@@ -139,12 +187,12 @@ const controller = () => {
     const getGameStateMessage = () => gameState.message;
     const setGameStateMessage = (message) => gameState.message = message;
 
-    const registerPlayer = (name, marker, type) => {
+    const registerPlayer = (name, marker, type, difficulty) => {
         if (!gameState.player1 && marker === 'x') {
-            gameState.player1 = player(name, marker, type);
+            gameState.player1 = player(name, marker, type, difficulty);
             setGameStateMessage(`${gameState.player1.getName()}'s ready!`);
         } else if (!gameState.player2 && marker === 'o') {
-            gameState.player2 = player(name, marker, type);
+            gameState.player2 = player(name, marker, type, difficulty);
             setGameStateMessage(`${gameState.player2.getName()}'s ready!`);
         } else {
             setGameStateMessage('Already registered!');

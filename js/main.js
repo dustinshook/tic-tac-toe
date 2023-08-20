@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ready_handleClick = (e) => {
             if (e.target.id === `add-player_${id}` && !e.target.classList.contains('ready')) {
                 e.target.classList.add('ready');
-                game.registerPlayer(playerName.value, marker, playerSelect.value);
+                game.registerPlayer(playerName.value, marker, playerSelect.value, diffSelect.value);
                 displayMessage();
 
                 e.target.removeEventListener('click', ready_handleClick);
