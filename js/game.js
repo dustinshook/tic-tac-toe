@@ -8,9 +8,12 @@ const player = (name, marker, type) => {
 
     const move = () => {
         const board = gameboard.getBoard();
-        const cols = [0, 1, 2].map(col => {
-            return board.map(row => row[col]);
-        });
+    
+        const cols = () => {
+            return [0, 1, 2].map(col => {
+                return board.map(row => row[col]);
+            });
+        };
 
         const diag = () => {
             const topLeftToBottomRight = [0, 1, 2].map((col, index) => board[col][index]);
@@ -21,8 +24,8 @@ const player = (name, marker, type) => {
         const evaluate = () => {
             if (board.some(row => row.every(cell => cell === getMark()))) return 10;
             if (board.some(row => row.every(cell => cell === opponent))) return -10;
-            if (cols.some(col => col.every(cell => cell === getMark()))) return 10;
-            if (cols.some(col => col.every(cell => cell === opponent))) return -10;
+            if (cols().some(col => col.every(cell => cell === getMark()))) return 10;
+            if (cols().some(col => col.every(cell => cell === opponent))) return -10;
             if (diag().some(diag => diag.every(cell => cell === getMark()))) return 10;
             if (diag().some(diag => diag.every(cell => cell === opponent))) return -10;
             return 0;
