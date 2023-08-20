@@ -201,7 +201,7 @@ const controller = () => {
 
     const emulateClickForCpuPlayer = ({ row, col }) => {
         let cell = gameboard.slots[row][col];
-        setTimeout(() => cell.el.click(), 500);
+        setTimeout(() => cell.el.click(), 1000);
     };
 
     const startGame = () => {

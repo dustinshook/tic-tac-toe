@@ -231,6 +231,7 @@ main {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    width: calc(100% - 4rem);
     
     padding: 1rem;
     font-size: 1rem;

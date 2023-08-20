@@ -9,7 +9,7 @@ const messageHandler = ({ getGameStateMessage }) => {
         };
 
         elm.textContent = getGameStateMessage();
-        elm.style.opacity = 1;
+        elm.style.opacity = 0.8;
 
         setTimeout(messageReset, 2000);
     };
@@ -18,14 +18,14 @@ const messageHandler = ({ getGameStateMessage }) => {
 /* const updateCellsEvent = new CustomEvent('updateCells'); */
 /* DOM loaded */
 document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('grid-container');
+    const gridContainer = document.getElementById('grid-container');
     const controls = document.querySelectorAll('.controls');
     const startButton = document.getElementById('start');
     const resetButton = document.getElementById('reset');
     const game = controller();
     const displayMessage  = messageHandler(game);
 
-    const _initGameboard = (container) => {
+    ((container) => {
         gameboard.slots.
             forEach((row, rowIndex) => {
                 row.forEach((cell, cellIndex) => {
@@ -40,14 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     container.appendChild(div);
                 });
             });
-    };
-
-    _initGameboard(container);
-
-    startButton.addEventListener('click', () => {
-        game.startGame();
-        displayMessage();
-    });
+    })(gridContainer);
 
     const renderControls = (id) => {
         const cache = JSON.parse(localStorage.getItem(`add-player_${id}`));
@@ -129,12 +122,21 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.removeEventListener('click', cell_handleClick);
     };
 
-    (() => cells.forEach(cell => cell.addEventListener('click', cell_handleClick)))();
+    const enableCells = () => cells.forEach(cell => cell.addEventListener('click', cell_handleClick));
+
+    const startGame = (e) => {
+        game.startGame();
+        displayMessage();
+        enableCells();
+
+        e.target.removeEventListener('click', startGame);
+    };
 
     const _resetGameboard = () => {
         window.location.reload();
     };
-
+    
+    startButton.addEventListener('click', startGame);
     resetButton.addEventListener('click', _resetGameboard);
 
 });
